@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.price_comparator.domain.Discount;
-import com.example.price_comparator.service.DiscountService;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,12 +21,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @CrossOrigin(value = "http://localhost:8080")
 public class DiscountController {
     
-    @Autowired
-    private DiscountService discountService;
+    // @Autowired
+    // private DiscountService discountService;
 
-     @GetMapping("")
-    public ResponseEntity<List<Discount>> getAllDiscounts() {
-        return ResponseEntity.status(HttpStatus.OK).body(discountService.findAll());
-    }
+    //  @GetMapping("")
+    // public ResponseEntity<List<Discount>> getAllDiscounts() {
+    //     return ResponseEntity.status(HttpStatus.OK).body(discountService.findAll());
+    // }
     
 }

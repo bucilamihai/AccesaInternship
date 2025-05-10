@@ -1,7 +1,4 @@
 package com.example.price_comparator.domain;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 
 public class Discount {
@@ -47,13 +44,6 @@ public class Discount {
 
     public void setDiscountPercentage(int discountPercentage) {
         this.discountPercentage = discountPercentage;
-    }
-
-    public double getDiscountedPrice() {
-        double value = product.getPrice() * (1 - discountPercentage / 100.0);
-        return new BigDecimal(value)
-            .setScale(2, RoundingMode.HALF_UP)
-            .doubleValue();
     }
 
     @Override

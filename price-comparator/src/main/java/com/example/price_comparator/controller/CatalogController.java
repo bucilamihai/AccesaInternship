@@ -10,20 +10,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.example.price_comparator.service.ProductService;
-import com.example.price_comparator.domain.Product;
+import com.example.price_comparator.domain.Catalog;
+import com.example.price_comparator.service.CatalogService;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/catalogs")
 @CrossOrigin(value = "http://localhost:8080")
-public class ProductController {
+public class CatalogController {
     
     @Autowired
-    private ProductService productService;
+    private CatalogService catalogService;
 
     @GetMapping("")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.status(HttpStatus.OK).body(productService.findAll());
+    public ResponseEntity<List<Catalog>> getAllCatalogs() {
+        return ResponseEntity.status(HttpStatus.OK).body(catalogService.findAll());
     }
     
 }

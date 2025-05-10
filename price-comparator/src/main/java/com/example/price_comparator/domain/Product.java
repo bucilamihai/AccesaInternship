@@ -85,10 +85,6 @@ public class Product {
         this.currency = currency;
     }
 
-    public double getPricePerUnit() {
-        return price / quantity;
-    }
-
     @Override
     public String toString() {
         return "Product{" +
