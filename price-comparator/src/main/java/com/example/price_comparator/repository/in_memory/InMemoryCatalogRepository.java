@@ -20,5 +20,4 @@ public class InMemoryCatalogRepository implements CatalogRepository {
     public List<Catalog> findAll() {
         return catalogs;
     }
-    
 }
