@@ -18,4 +18,6 @@ public interface DiscountRepository extends JpaRepository<Discount, Long>{
 
     @Query("SELECT d FROM Discount d ORDER BY d.discountPercentage DESC")
     List<Discount> findAllByOrderByDiscountPercentageDesc();
+
+    List<Discount> findByPricedProductId(Long pricedProductId);
 }

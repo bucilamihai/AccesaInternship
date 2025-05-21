@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @ToString(exclude = "catalog")
 public class Discount {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

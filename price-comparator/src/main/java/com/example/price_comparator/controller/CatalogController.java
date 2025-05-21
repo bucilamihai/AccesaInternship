@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.example.price_comparator.domain.Catalog;
+import com.example.price_comparator.dto.PriceHistoryDTO;
 import com.example.price_comparator.service.CatalogService;
+
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/catalogs")
@@ -21,8 +23,9 @@ public class CatalogController {
     @Autowired
     private CatalogService catalogService;
 
-    @GetMapping("")
-    public ResponseEntity<List<Catalog>> getAllCatalogs() {
-        return ResponseEntity.status(HttpStatus.OK).body(catalogService.findAll());
+    @GetMapping("/price-history")
+    public ResponseEntity<List<PriceHistoryDTO>> getPriceHistory(@RequestParam String productName) {
+        List<PriceHistoryDTO> priceHistory = catalogService.getPriceHistory(productName);
+        return ResponseEntity.status(HttpStatus.OK).body(priceHistory);
     }
 }
