@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.example.price_comparator.dto.DiscountDTO;
-import com.example.price_comparator.service.CatalogService;
+import com.example.price_comparator.service.DiscountService;
 
 @RestController
 @RequestMapping("/discounts")
@@ -21,15 +21,15 @@ import com.example.price_comparator.service.CatalogService;
 public class DiscountsController {
     
     @Autowired
-    private CatalogService catalogService;
+    private DiscountService discountService;
 
     @GetMapping("/new") 
     public ResponseEntity<List<DiscountDTO>> getNewDiscounts(@RequestParam LocalDate date) {
-        return ResponseEntity.status(HttpStatus.OK).body(catalogService.filterDiscountsByDate(date));
+        return ResponseEntity.status(HttpStatus.OK).body(discountService.filterDiscountsByDate(date));
     }
 
     @GetMapping("/best") 
     public ResponseEntity<List<DiscountDTO>> getBestDiscounts(@RequestParam(required = false) Integer limit) {
-        return ResponseEntity.status(HttpStatus.OK).body(catalogService.findBestDiscounts(limit));
+        return ResponseEntity.status(HttpStatus.OK).body(discountService.findBestDiscounts(limit));
     }
 }

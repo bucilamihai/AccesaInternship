@@ -4,7 +4,6 @@ import com.example.price_comparator.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 public class ProductService {
@@ -18,9 +17,5 @@ public class ProductService {
 
     public Product findProductById(String id) {
         return productRepository.findById(id).orElse(null);
-    }
-
-    public List<Product> findAllProducts() {
-        return productRepository.findAll();
     }
 }
