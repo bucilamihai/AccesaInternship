@@ -6,8 +6,6 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Catalog {
@@ -19,10 +17,8 @@ public class Catalog {
     private LocalDate catalogDate;
 
     @OneToMany(mappedBy = "catalog", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
     private List<PricedProduct> pricedProducts;
 
     @OneToMany(mappedBy = "catalog", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
     private List<Discount> discounts;
 }

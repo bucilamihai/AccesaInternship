@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.example.price_comparator.domain.Discount;
+import com.example.price_comparator.dto.DiscountDTO;
 import com.example.price_comparator.service.CatalogService;
 
 @RestController
@@ -24,12 +24,12 @@ public class DiscountsController {
     private CatalogService catalogService;
 
     @GetMapping("/new") 
-    public ResponseEntity<List<Discount>> getNewDiscounts(@RequestParam LocalDate date) {
+    public ResponseEntity<List<DiscountDTO>> getNewDiscounts(@RequestParam LocalDate date) {
         return ResponseEntity.status(HttpStatus.OK).body(catalogService.filterDiscountsByDate(date));
     }
 
     @GetMapping("/best") 
-    public ResponseEntity<List<Discount>> getBestDiscounts() {
-        return ResponseEntity.status(HttpStatus.OK).body(catalogService.findBestDiscounts());
+    public ResponseEntity<List<DiscountDTO>> getBestDiscounts(@RequestParam(required = false) Integer limit) {
+        return ResponseEntity.status(HttpStatus.OK).body(catalogService.findBestDiscounts(limit));
     }
 }

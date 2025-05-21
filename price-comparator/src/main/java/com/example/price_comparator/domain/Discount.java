@@ -1,7 +1,6 @@
 package com.example.price_comparator.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
+    import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -21,6 +20,5 @@ public class Discount {
 
     @ManyToOne
     @JoinColumn(name = "catalog_id")
-    @JsonBackReference
     private Catalog catalog;
 }
