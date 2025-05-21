@@ -140,6 +140,7 @@ public class CatalogCsvLoader {
                 String[] columns = line.split(",");
                 if (columns.length != 9) {
                     System.err.println("Skipping invalid discount row (expected 9 columns): " + line);
+                    continue;
                 }
 
                 try {
