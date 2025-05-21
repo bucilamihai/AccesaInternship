@@ -93,11 +93,11 @@ public class CatalogCsvLoader {
                 String[] columns = line.split(",");
                 if (columns.length != 8) {
                     System.err.println("Skipping invalid product row (expected 8 columns): " + line);
-                    continue;
                 }
 
                 try {
                     String id = columns[0];
+                    String name = columns[1];
                     String category = columns[2];
                     String brand = columns[3];
                     double quantity = Double.parseDouble(columns[4]);
@@ -140,7 +140,6 @@ public class CatalogCsvLoader {
                 String[] columns = line.split(",");
                 if (columns.length != 9) {
                     System.err.println("Skipping invalid discount row (expected 9 columns): " + line);
-                    continue;
                 }
 
                 try {
