@@ -1,26 +1,28 @@
 package com.example.price_comparator.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Discount {
+public class PricedProduct {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
-    private PricedProduct pricedProduct;
+    private Product product;
 
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private int discountPercentage;
+    private double price;
+    private String currency;
 
     @ManyToOne
     @JoinColumn(name = "catalog_id")
-    @JsonBackReference
     private Catalog catalog;
+
+    public PricedProduct(Product product, double price, String currency) {
+        this.product = product;
+        this.price = price;
+        this.currency = currency;
+    }
 }
+

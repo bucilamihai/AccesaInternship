@@ -1,22 +1,22 @@
 package com.example.price_comparator.init;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.time.LocalDate;
+import com.example.price_comparator.domain.Catalog;
+import com.example.price_comparator.domain.Discount;
+import com.example.price_comparator.domain.PricedProduct;
+import com.example.price_comparator.domain.Product;
+import com.example.price_comparator.service.CatalogService;
+import com.example.price_comparator.service.ProductService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.example.price_comparator.service.CatalogService;
-import com.example.price_comparator.domain.Catalog;
-import com.example.price_comparator.domain.Product;
-import com.example.price_comparator.domain.Discount;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 
 @Component
 public class CatalogCsvLoader {
@@ -24,109 +24,151 @@ public class CatalogCsvLoader {
     @Autowired
     private CatalogService catalogService;
 
+    @Autowired
+    private ProductService productService;
+
     public void loadCatalogs(String folderPath, String shopName) {
         File folder = new File(folderPath);
-        File[] files = folder.listFiles((dir, name) -> name.endsWith(".csv"));
-        if (files == null || files.length == 0) {
-            System.err.println("No CSV files found in the path: " + folderPath);
+        File[] csvFiles = folder.listFiles((dir, name) -> name.endsWith(".csv"));
+
+        if (csvFiles == null || csvFiles.length == 0) {
+            System.err.println("No CSV files found in: " + folderPath);
             return;
         }
 
-        // Group by date
         Map<String, File> productFiles = new HashMap<>();
         Map<String, File> discountFiles = new HashMap<>();
 
-        for (File file : files) {
-            String fileName = file.getName();
-            String date = extractDate(fileName);
-            if (fileName.contains("discounts")) {
-                discountFiles.put(date, file);
-            } else {
-                productFiles.put(date, file);
-            }
+        for (File file : csvFiles) {
+            String dateKey = extractDate(file.getName());
+            if (file.getName().toLowerCase().contains("discounts"))
+                discountFiles.put(dateKey, file);
+            else
+                productFiles.put(dateKey, file);
         }
 
-        for (String dateString : productFiles.keySet()) {
-            LocalDate date = LocalDate.parse(dateString);
-            File productFile = productFiles.get(dateString);
-            File discountFile = discountFiles.get(dateString);
+        for (String dateKey : productFiles.keySet()) {
+            File productFile = productFiles.get(dateKey);
+            File discountFile = discountFiles.get(dateKey);
 
-            List<Product> products = getProducts(productFile.getAbsolutePath());
+            LocalDate catalogDate = LocalDate.parse(dateKey);
+
+            Catalog catalog = new Catalog();
+            catalog.setShopName(shopName);
+            catalog.setCatalogDate(catalogDate);
+
+            List<PricedProduct> pricedProducts = productFile != null
+                ? getPricedProducts(productFile)
+                : Collections.emptyList();
+            for (PricedProduct pricedProduct : pricedProducts) {
+                pricedProduct.setCatalog(catalog);
+            }
+            catalog.setPricedProducts(pricedProducts);
+
             List<Discount> discounts = discountFile != null
-                    ? getDiscounts(discountFile.getAbsolutePath(), products)
-                    : new ArrayList<>();
+                ? getDiscounts(discountFile, pricedProducts)
+                : Collections.emptyList();
+            for (Discount discount : discounts) {
+                discount.setCatalog(catalog);
+            }
+            catalog.setDiscounts(discounts);
 
-            Catalog catalog = new Catalog(shopName, date, products, discounts);
+            // persist everything
             catalogService.saveCatalog(catalog);
+            System.out.println("Saved catalog for " + shopName + " @ " + catalogDate);
         }
     }
 
-    public List<Product> getProducts(String filePath) {
-        List<Product> products = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            // Header line
-            String header = reader.readLine();
-            if (header == null || header.isEmpty()) {
-                System.err.println("Empty or invalid CSV file: " + filePath);
-                return null;
+
+    private List<PricedProduct> getPricedProducts(File file) {
+        List<PricedProduct> pricedProducts = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String headerLine = reader.readLine();  // Skip header
+            if (headerLine == null) {
+                throw new IOException("CSV file is empty: " + file.getName());
             }
 
-            reader.lines().forEach(line ->{
-                String[] data = line.split(",");
-                if (data.length == 8) {
-                    String id = data[0];
-                    String name = data[1];
-                    String category = data[2];
-                    String brand = data[3];
-                    double quantity = Double.parseDouble(data[4]);
-                    String unit = data[5];
-                    double price = Double.parseDouble(data[6]);
-                    String currency = data[7];
-                    Product product = new Product(id, name, category, brand, quantity, unit, price, currency);
-                    products.add(product);
+            reader.lines().forEach(line -> {
+                String[] columns = line.split(",");
+                if (columns.length != 8) {
+                    System.err.println("Skipping invalid product row (expected 8 columns): " + line);
+                }
 
-                } else {
-                    System.err.println("Invalid data format: " + line);
+                try {
+                    String id = columns[0];
+                    String name = columns[1];
+                    String category = columns[2];
+                    String brand = columns[3];
+                    double quantity = Double.parseDouble(columns[4]);
+                    String unit = columns[5];
+                    double price = Double.parseDouble(columns[6]);
+                    String currency = columns[7];
+
+                    // find or create Product
+                    Product product = productService.findProductById(id); 
+                    if(product == null) {
+                        product = new Product(id, name, category, brand, quantity, unit);
+                        productService.saveProduct(product);
+                    }
+
+                    // create PricedProduct
+                    PricedProduct pricedProduct = new PricedProduct(product, price, currency);
+
+                    pricedProducts.add(pricedProduct);
+                } catch (NumberFormatException e) {
+                    System.err.println("Skipping row due to number format error: " + line);
                 }
             });
-            System.out.println("Data loaded successfully from CSV. " + filePath);
-        } catch (IOException e) {
-            System.err.println("Error loading data from CSV: " + e.getMessage());
+        } catch (IOException exception) {
+            System.err.println("Error reading product CSV file: " + file.getAbsolutePath());
         }
-        return products;
+
+        return pricedProducts;
     }
 
-    public List<Discount> getDiscounts(String filePath, List<Product> products) {
+    private List<Discount> getDiscounts(File file, List<PricedProduct> pricedProducts) {
         List<Discount> discounts = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            // Header line
-            String header = reader.readLine();
-            if (header == null || header.isEmpty()) {
-                System.err.println("Empty or invalid CSV file: " + filePath);
-                return null;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String headerLine = reader.readLine();  // Skip the header
+            if (headerLine == null) {
+                throw new IOException("Discount CSV file is empty: " + file.getName());
             }
 
-            reader.lines().forEach(line ->{
-                String[] data = line.split(",");
-                if (data.length == 9) {
-                    String id = data[0];
-                    LocalDate startDate = LocalDate.parse(data[6]);
-                    LocalDate endDate = LocalDate.parse(data[7]);
-                    int discountPercentage = Integer.parseInt(data[8]);
-                    Product product = products.stream()
-                            .filter(p -> p.getId().equals(id))
-                            .findFirst()
-                            .orElse(null);
-                    Discount discount = new Discount(product, startDate, endDate, discountPercentage);
+            reader.lines().forEach(line -> {
+                String[] columns = line.split(",");
+                if (columns.length != 9) {
+                    System.err.println("Skipping invalid discount row (expected 9 columns): " + line);
+                }
+
+                try {
+                    String productId = columns[0];
+                    LocalDate startDate = LocalDate.parse(columns[6]);
+                    LocalDate endDate = LocalDate.parse(columns[7]);
+                    int discountPercentage = Integer.parseInt(columns[8]);
+
+                    PricedProduct pricedProduct = pricedProducts.stream()
+                        .filter(p -> p.getProduct().getId().equals(productId))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException(
+                            "Unknown product ID in discount CSV (no PricedProduct): " + productId));
+
+                    Discount discount = new Discount();
+                    discount.setPricedProduct(pricedProduct);
+                    discount.setStartDate(startDate);
+                    discount.setEndDate(endDate);
+                    discount.setDiscountPercentage(discountPercentage);
+
                     discounts.add(discount);
-                } else {
-                    System.err.println("Invalid data format: " + line);
+                } catch (NumberFormatException | DateTimeParseException e) {
+                    System.err.println("Skipping row due to parsing error: " + line);
                 }
             });
-            System.out.println("Data loaded successfully from CSV. " + filePath);
-        } catch (IOException e) {
-            System.err.println("Error loading data from CSV: " + e.getMessage());
+        } catch (IOException exception) {
+            System.err.println("Error reading discounts CSV file: " + file.getAbsolutePath());
         }
+
         return discounts;
     }
 
