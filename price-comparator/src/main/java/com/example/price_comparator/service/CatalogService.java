@@ -10,11 +10,18 @@ import com.example.price_comparator.domain.PricedProduct;
 import com.example.price_comparator.domain.Discount;
 import com.example.price_comparator.dto.PriceHistoryDTO;
 import com.example.price_comparator.dto.PricePointDTO;
+import com.example.price_comparator.dto.ShoppingListDTO;
+import com.example.price_comparator.dto.BasketDTO;
+import com.example.price_comparator.dto.PricedProductDTO;
 
+import java.util.Map;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.concurrent.atomic.DoubleAdder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -125,5 +132,45 @@ public class CatalogService {
             });
         });
         return priceHistory;
+    }
+
+    public ShoppingListDTO optimiseBasket(BasketDTO basketDTO, LocalDate givenDate) {
+        DoubleAdder totalPrice = new DoubleAdder();
+        List<PricedProductDTO> items = new ArrayList<>();
+
+        basketDTO.getItems().forEach(basketItem -> {
+            List<PriceHistoryDTO> priceHistoryList = getPriceHistory(basketItem.getProductName());
+
+            Optional<Map.Entry<PriceHistoryDTO, PricePointDTO>> minEntry = priceHistoryList.stream()
+                .flatMap(history -> history.getPriceHistory().stream()
+                    .filter(point -> point.getDate().isEqual(givenDate))
+                    .map(point -> (Map.Entry<PriceHistoryDTO, PricePointDTO>)
+                        new AbstractMap.SimpleEntry<>(history, point)))
+                .min(Comparator.comparingDouble(entry -> entry.getValue().getPrice()));
+
+            if (minEntry.isPresent()) {
+                PriceHistoryDTO priceHistory = minEntry.get().getKey();
+                PricePointDTO pricePoint = minEntry.get().getValue();
+
+                totalPrice.add(pricePoint.getPrice() * basketItem.getQuantity());
+
+                PricedProductDTO cheapestProduct = new PricedProductDTO(
+                    priceHistory.getId(),
+                    priceHistory.getName(),
+                    priceHistory.getCategory(),
+                    priceHistory.getBrand(),
+                    priceHistory.getQuantity(),
+                    priceHistory.getUnit(),
+                    pricePoint.getPrice(),
+                    pricePoint.getCurrency(),
+                    pricePoint.getShopName(),
+                    pricePoint.getDate()
+                );
+
+                items.add(cheapestProduct);
+            }
+        });
+
+        return new ShoppingListDTO(MathUtils.round(totalPrice.doubleValue(), 2), items);
     }
 }

@@ -31,9 +31,7 @@ public class Initializer {
         File[] files = folder.listFiles(File::isDirectory);
         if (files != null) {
             for (File file : files) {
-                // First letter uppercase and the rest lowercase
-                String shopName = file.getName().substring(0, 1).toUpperCase() 
-                    + file.getName().substring(1).toLowerCase();
+                String shopName = file.getName();
                 shopNames.add(shopName);
             }
         } else {

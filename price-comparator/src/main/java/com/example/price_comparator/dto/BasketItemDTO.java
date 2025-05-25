@@ -6,11 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class ProductDTO {
-    private String id;
-    private String name;
-    private String category;
-    private String brand;
-    private double quantity;
-    private String unit;
+public class BasketItemDTO {
+    private String productName;
+    private int quantity;
 }

@@ -7,5 +7,4 @@ import com.example.price_comparator.domain.Catalog;
 
 @Repository
 public interface CatalogRepository extends JpaRepository<Catalog, Long> {
-
 }

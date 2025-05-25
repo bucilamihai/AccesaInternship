@@ -18,7 +18,7 @@ import com.example.price_comparator.service.DiscountService;
 @RestController
 @RequestMapping("/discounts")
 @CrossOrigin(value = "http://localhost:8080")
-public class DiscountsController {
+public class DiscountController {
     
     @Autowired
     private DiscountService discountService;

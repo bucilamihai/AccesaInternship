@@ -1,9 +1,11 @@
 package com.example.price_comparator.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+import java.time.LocalDate;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class PricedProductDTO {
@@ -18,5 +20,5 @@ public class PricedProductDTO {
     private String currency;
 
     private String shopName;
-    private String catalogDate;
+    private LocalDate catalogDate;
 }
