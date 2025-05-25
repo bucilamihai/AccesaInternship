@@ -1,0 +1,6 @@
+iaurt grecesc,10.65,mihai@gmail.com
+vin alb demisec,21,alin@gmail.com
+cafea măcinată,19.5,robert@gmail.com
+lapte zuzu,6,ioana@gmail.com
+spaghetti nr.5,3.95,mihai@gmail.com
+ulei floarea-soarelui,8.1,maria@gmail.com
